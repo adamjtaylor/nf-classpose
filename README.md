@@ -70,7 +70,7 @@ Sample IDs are automatically derived from the slide filename (e.g., `slide1.svs`
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--model_config` | `conic` | Model: conic, consep, glysac, monusac, nucls, puma |
+| `--model_config` | `conic` | Model: conic, consep, glysac, monusac, puma |
 
 ### ROI
 
@@ -147,9 +147,9 @@ The pipeline produces the following outputs for each sample:
 |------|-------------|
 | `{sample_id}_cell_contours.geojson` | Cell contour polygons |
 | `{sample_id}_cell_centroids.geojson` | Cell centroid points |
-| `{sample_id}_tissue_mask.geojson` | Tissue mask (if tissue detection enabled) |
-| `{sample_id}_artefact_mask.geojson` | Artefact mask (if artefact detection enabled) |
-| `{sample_id}_cells.csv` | Cell data table (if --output_type csv) |
+| `{sample_id}_tissue_contours.geojson` | Tissue contours (if tissue detection enabled) |
+| `{sample_id}_artefact_contours.geojson` | Artefact contours (if artefact detection enabled) |
+| `{sample_id}_densities.csv` | Cell density statistics (if --output_type csv) |
 | `{sample_id}.zarr` | SpatialData object (if --output_type spatialdata) |
 
 ## Building the Container Locally

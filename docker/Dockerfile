@@ -8,7 +8,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openslide-tools \
     libopenslide0 \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     git \
     curl \
@@ -22,14 +22,14 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 WORKDIR /opt
 RUN git clone https://github.com/sohmandal/classpose.git
 WORKDIR /opt/classpose
-RUN uv sync --frozen
+RUN uv sync
 
-# Pre-download classpose models
+# Pre-download classpose models (5 available: conic, consep, glysac, monusac, puma)
 ENV CLASSPOSE_MODEL_DIR=/root/.classpose_models
 RUN mkdir -p $CLASSPOSE_MODEL_DIR && \
     uv run python -c "from huggingface_hub import hf_hub_download; \
     [hf_hub_download('classpose/classpose', f'{m}.pt', local_dir='$CLASSPOSE_MODEL_DIR') \
-    for m in ['conic', 'consep', 'glysac', 'monusac', 'nucls', 'puma']]"
+    for m in ['conic', 'consep', 'glysac', 'monusac', 'puma']]"
 
 # Pre-download GrandQC models for tissue/artefact detection
 ENV GRANDQC_MODEL_DIR=/root/.grandqc_models
