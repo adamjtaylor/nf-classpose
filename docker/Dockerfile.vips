@@ -1,0 +1,19 @@
+FROM python:3.9-slim
+
+LABEL org.opencontainers.image.source="https://github.com/adamjtaylor/nf-classpose"
+LABEL org.opencontainers.image.description="libvips for WSI format conversion"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# Install libvips and required dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libvips-tools \
+    libvips42 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Verify vips installation
+RUN vips --version
+
+# Default working directory
+WORKDIR /data
+
+ENTRYPOINT []

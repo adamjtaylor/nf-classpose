@@ -15,6 +15,7 @@ nextflow.enable.dsl = 2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+include { VIPS_CONVERT } from './modules/local/vips_convert'
 include { CLASSPOSE_PREDICT_WSI } from './modules/local/classpose_predict_wsi'
 
 /*
@@ -65,8 +66,11 @@ workflow {
     // Parse samplesheet
     ch_samples = parseSamplesheet(params.input)
 
+    // Convert WSIs if needed (OME-TIFF to Generic Tiled TIFF)
+    ch_converted = VIPS_CONVERT(ch_samples)
+
     // Run classpose prediction
-    CLASSPOSE_PREDICT_WSI(ch_samples)
+    CLASSPOSE_PREDICT_WSI(ch_converted.converted)
 }
 
 /*
@@ -81,20 +85,4 @@ workflow.onComplete {
     log.info "Execution status: ${workflow.success ? 'OK' : 'failed'}"
     log.info "Results published to: ${params.outdir}"
     log.info ""
-=======
-
-    See initial-dev branch for active development
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-nextflow.enable.dsl = 2
-
-workflow {
-    log.info """
-    ========================================
-    nf-classpose - placeholder
-    ========================================
-    This is a placeholder workflow.
-    See the initial-dev branch for the full implementation.
-    """
 }
