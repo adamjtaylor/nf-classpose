@@ -81,4 +81,20 @@ workflow.onComplete {
     log.info "Execution status: ${workflow.success ? 'OK' : 'failed'}"
     log.info "Results published to: ${params.outdir}"
     log.info ""
+=======
+
+    See initial-dev branch for active development
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+nextflow.enable.dsl = 2
+
+workflow {
+    log.info """
+    ========================================
+    nf-classpose - placeholder
+    ========================================
+    This is a placeholder workflow.
+    See the initial-dev branch for the full implementation.
+    """
 }
