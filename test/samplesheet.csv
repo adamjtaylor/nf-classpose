@@ -1,0 +1,4 @@
+sample_id,slide_path,roi_geojson,model_config
+sample1,/data/slide1.svs,,
+sample2,/data/slide2.tiff,/data/roi2.geojson,
+sample3,/data/slide3.ndpi,,consep
