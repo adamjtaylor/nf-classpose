@@ -1,6 +1,7 @@
 process CLASSPOSE_PREDICT_WSI {
     tag "$meta.id"
     label 'process_gpu'
+    publishDir "${params.outdir}/${meta.id}", mode: 'copy'
 
     input:
     tuple val(meta), path(slide)
