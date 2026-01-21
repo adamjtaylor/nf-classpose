@@ -152,8 +152,8 @@ The pipeline produces the following outputs for each sample:
 | `{sample_id}_cell_centroids.geojson` | Cell centroid points |
 | `{sample_id}_tissue_contours.geojson` | Tissue contours (if tissue detection enabled) |
 | `{sample_id}_artefact_contours.geojson` | Artefact contours (if artefact detection enabled) |
-| `{sample_id}_densities.csv` | Cell density statistics (if --output_type csv) |
-| `{sample_id}.zarr` | SpatialData object (if --output_type spatialdata) |
+| `{sample_id}_cell_densities.csv` | Cell density statistics (if --output_type csv) |
+| `{sample_id}_spatialdata.zarr` | SpatialData object (if --output_type spatialdata) |
 
 ## Building the Container Locally
 

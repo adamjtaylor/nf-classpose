@@ -11,8 +11,8 @@ process CLASSPOSE_PREDICT_WSI {
     tuple val(meta), path("${meta.id}_cell_centroids.geojson"), emit: centroids
     tuple val(meta), path("${meta.id}_tissue_contours.geojson"), emit: tissue, optional: true
     tuple val(meta), path("${meta.id}_artefact_contours.geojson"), emit: artefact, optional: true
-    tuple val(meta), path("${meta.id}_densities.csv"), emit: csv, optional: true
-    tuple val(meta), path("${meta.id}.zarr"), emit: spatialdata, optional: true
+    tuple val(meta), path("${meta.id}_cell_densities.csv"), emit: csv, optional: true
+    tuple val(meta), path("${meta.id}_spatialdata.zarr"), emit: spatialdata, optional: true
     path "versions.yml", emit: versions
 
     script:
@@ -54,7 +54,7 @@ process CLASSPOSE_PREDICT_WSI {
         args << "--tta"
     }
 
-    // Output type
+    // Output type (nargs="+" expects space-separated values without quotes)
     if (params.output_type) {
         args << "--output_type ${params.output_type}"
     }
