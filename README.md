@@ -5,7 +5,7 @@ Nextflow pipeline wrapper for [Classpose](https://github.com/sohmandal/classpose
 ## Features
 
 - Simple CSV samplesheet input (just slide paths)
-- Pre-built Docker container with all 5 models included
+- Pre-built Docker container with conic model included
 - Support for Docker, Singularity, and Apptainer
 - GPU acceleration support
 
@@ -70,7 +70,7 @@ Sample IDs are automatically derived from the slide filename (e.g., `slide1.svs`
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--model_config` | `conic` | Model: conic, consep, glysac, monusac, puma |
+| `--model_config` | `conic` | Model: conic (only conic bundled in container) |
 
 ### ROI
 
@@ -161,7 +161,7 @@ The pipeline produces the following outputs for each sample:
 # Build Docker image
 docker build -t nf-classpose docker/
 
-# Verify models are present
+# Verify model is present
 docker run nf-classpose ls /root/.classpose_models
 ```
 
