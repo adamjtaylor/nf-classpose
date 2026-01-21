@@ -212,3 +212,4 @@ work/
 .nextflow.log*
 results/
 .nextflow.pid
+*.DS_Store
