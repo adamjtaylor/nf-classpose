@@ -43,6 +43,11 @@ RUN mkdir -p $GRANDQC_MODEL_DIR/tissue $GRANDQC_MODEL_DIR/artefact && \
     curl -L "https://zenodo.org/records/14041538/files/GrandQC_MPP15.pth?download=1" \
         -o $GRANDQC_MODEL_DIR/artefact/GrandQC_MPP15.pth
 
+# Pre-download EfficientNet backbone weights used by GrandQC
+RUN mkdir -p /root/.cache/torch/hub/checkpoints && \
+    curl -L "https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_efficientnet_b0_aa-827b6e33.pth" \
+        -o /root/.cache/torch/hub/checkpoints/tf_efficientnet_b0_aa-827b6e33.pth
+
 # Set PATH to include venv
 ENV PATH="/opt/classpose/.venv/bin:$PATH"
 
