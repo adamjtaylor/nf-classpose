@@ -5,7 +5,7 @@ Nextflow pipeline wrapper for [Classpose](https://github.com/sohmandal/classpose
 ## Features
 
 - Simple CSV samplesheet input (just slide paths)
-- Pre-built Docker container with all 6 models included
+- Pre-built Docker container with all 5 models included
 - Support for Docker, Singularity, and Apptainer
 - GPU acceleration support
 
@@ -108,7 +108,7 @@ GrandQC models are pre-bundled in the container.
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--output_type` | null | Additional outputs: csv, spatialdata |
+| `--output_type` | `csv spatialdata` | Output formats: csv (density stats), spatialdata (Zarr) |
 
 ## Profiles
 
