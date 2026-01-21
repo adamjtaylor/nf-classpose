@@ -4,11 +4,10 @@ Nextflow pipeline wrapper for [Classpose](https://github.com/sohmandal/classpose
 
 ## Features
 
-- CSV samplesheet input for batch processing
+- Simple CSV samplesheet input (just slide paths)
 - Pre-built Docker container with all 6 models included
 - Support for Docker, Singularity, and Apptainer
 - GPU acceleration support
-- Per-sample model configuration
 
 ## Quick Start
 
@@ -43,21 +42,20 @@ ghcr.io/sohmandal/nf-classpose:latest
 
 ## Samplesheet Format
 
-Create a CSV file with the following columns:
+Create a CSV file with slide paths:
 
 ```csv
-sample_id,slide_path,roi_geojson,model_config
-sample1,/data/slide1.svs,,
-sample2,/data/slide2.tiff,/data/roi2.geojson,
-sample3,/data/slide3.ndpi,,consep
+slide_path
+/data/slide1.svs
+/data/slide2.tiff
+/data/slide3.ndpi
 ```
 
 | Column | Required | Description |
 |--------|----------|-------------|
-| `sample_id` | Yes | Unique identifier for the sample |
 | `slide_path` | Yes | Path to WSI file (.svs, .tiff, .ndpi, etc.) |
-| `roi_geojson` | No | Optional ROI GeoJSON file |
-| `model_config` | No | Per-sample model override |
+
+Sample IDs are automatically derived from the slide filename (e.g., `slide1.svs` → `slide1`).
 
 ## Parameters
 
@@ -72,14 +70,22 @@ sample3,/data/slide3.ndpi,,consep
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--model_config` | `conic` | Default model: conic, consep, glysac, monusac, nucls, puma |
+| `--model_config` | `conic` | Model: conic, consep, glysac, monusac, nucls, puma |
 
-### Tissue/Artefact Detection
+### ROI
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--tissue_detection_model_path` | null | Path to GrandQC tissue model |
-| `--artefact_detection_model_path` | null | Path to GrandQC artefact model |
+| `--roi_geojson` | null | Path to ROI GeoJSON file (applied to all samples) |
+
+### Tissue/Artefact Detection
+
+GrandQC models are pre-bundled in the container.
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--tissue_detection_model_path` | (bundled) | Path to GrandQC tissue model |
+| `--artefact_detection_model_path` | (bundled) | Path to GrandQC artefact model |
 | `--filter_artefacts` | false | Filter cells in artefact regions |
 
 ### Inference Settings

@@ -3,7 +3,7 @@ process CLASSPOSE_PREDICT_WSI {
     label 'process_gpu'
 
     input:
-    tuple val(meta), path(slide), path(roi)
+    tuple val(meta), path(slide)
 
     output:
     tuple val(meta), path("${meta.id}_cell_contours.geojson"), emit: contours
@@ -15,15 +15,12 @@ process CLASSPOSE_PREDICT_WSI {
     path "versions.yml", emit: versions
 
     script:
-    // Determine model config (per-sample override or global default)
-    def model_config = meta.model_config ?: params.model_config
-
     // Build optional arguments
     def args = []
 
     // ROI
-    if (roi) {
-        args << "--roi-geojson ${roi}"
+    if (params.roi_geojson) {
+        args << "--roi-geojson ${params.roi_geojson}"
     }
 
     // Tissue detection
@@ -66,7 +63,7 @@ process CLASSPOSE_PREDICT_WSI {
     """
     classpose predict-wsi \\
         --slide-path ${slide} \\
-        --model-config ${model_config} \\
+        --model-config ${params.model_config} \\
         --output-prefix ${meta.id} \\
         --batch-size ${params.batch_size} \\
         --tile-size ${params.tile_size} \\

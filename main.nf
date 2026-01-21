@@ -40,22 +40,18 @@ def parseSamplesheet(samplesheet) {
         .splitCsv(header: true, strip: true)
         .map { row ->
             // Validate required fields
-            if (!row.sample_id) {
-                error "ERROR: Missing sample_id in samplesheet row: ${row}"
-            }
             if (!row.slide_path) {
                 error "ERROR: Missing slide_path in samplesheet row: ${row}"
             }
 
+            def slide = file(row.slide_path, checkIfExists: true)
+
+            // Auto-derive sample_id from filename (without extension)
             def meta = [
-                id: row.sample_id,
-                model_config: row.model_config ?: null
+                id: slide.baseName
             ]
 
-            def slide = file(row.slide_path, checkIfExists: true)
-            def roi = row.roi_geojson ? file(row.roi_geojson, checkIfExists: true) : []
-
-            return [meta, slide, roi]
+            return [meta, slide]
         }
 }
 

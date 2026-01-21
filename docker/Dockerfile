@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
     libglib2.0-0 \
     git \
+    curl \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -22,12 +24,22 @@ RUN git clone https://github.com/sohmandal/classpose.git
 WORKDIR /opt/classpose
 RUN uv sync --frozen
 
-# Pre-download all models
+# Pre-download classpose models
 ENV CLASSPOSE_MODEL_DIR=/root/.classpose_models
 RUN mkdir -p $CLASSPOSE_MODEL_DIR && \
     uv run python -c "from huggingface_hub import hf_hub_download; \
     [hf_hub_download('classpose/classpose', f'{m}.pt', local_dir='$CLASSPOSE_MODEL_DIR') \
     for m in ['conic', 'consep', 'glysac', 'monusac', 'nucls', 'puma']]"
+
+# Pre-download GrandQC models for tissue/artefact detection
+ENV GRANDQC_MODEL_DIR=/root/.grandqc_models
+RUN mkdir -p $GRANDQC_MODEL_DIR/tissue $GRANDQC_MODEL_DIR/artefact && \
+    # Tissue detection model from Zenodo
+    curl -L "https://zenodo.org/records/14507273/files/Tissue_Detection_MPP10.pth?download=1" \
+        -o $GRANDQC_MODEL_DIR/tissue/Tissue_Detection_MPP10.pth && \
+    # Artefact detection models from Zenodo
+    curl -L "https://zenodo.org/records/14041538/files/GrandQC_MPP15.pth?download=1" \
+        -o $GRANDQC_MODEL_DIR/artefact/GrandQC_MPP15.pth
 
 # Set PATH to include venv
 ENV PATH="/opt/classpose/.venv/bin:$PATH"
