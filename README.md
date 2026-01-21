@@ -86,7 +86,7 @@ GrandQC models are pre-bundled in the container.
 |-----------|---------|-------------|
 | `--tissue_detection_model_path` | (bundled) | Path to GrandQC tissue model |
 | `--artefact_detection_model_path` | (bundled) | Path to GrandQC artefact model |
-| `--filter_artefacts` | false | Filter cells in artefact regions |
+| `--filter_artefacts` | false | Enable artefact detection and filter cells in artefact regions (memory-intensive on large slides) |
 
 ### Inference Settings
 

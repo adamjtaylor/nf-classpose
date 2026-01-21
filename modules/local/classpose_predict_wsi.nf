@@ -29,13 +29,9 @@ process CLASSPOSE_PREDICT_WSI {
         args << "--tissue_detection_model_path ${params.tissue_detection_model_path}"
     }
 
-    // Artefact detection
-    if (params.artefact_detection_model_path) {
+    // Artefact detection (only run if filter_artefacts is enabled)
+    if (params.filter_artefacts && params.artefact_detection_model_path) {
         args << "--artefact_detection_model_path ${params.artefact_detection_model_path}"
-    }
-
-    // Filter artefacts
-    if (params.filter_artefacts) {
         args << "--filter_artefacts"
     }
 
