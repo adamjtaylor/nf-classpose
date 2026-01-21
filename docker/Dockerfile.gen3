@@ -1,0 +1,27 @@
+FROM debian:bookworm-slim
+
+LABEL org.opencontainers.image.source="https://github.com/adamjtaylor/nf-classpose"
+LABEL org.opencontainers.image.description="Gen3 client for DRS URI downloads"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# Install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    unzip \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and install gen3-client
+RUN curl -L "https://github.com/uc-cdis/cdis-data-client/releases/download/2026.02/dataclient_linux_amd64.zip" \
+        -o /tmp/gen3-client.zip && \
+    unzip /tmp/gen3-client.zip -d /usr/local/bin && \
+    chmod +x /usr/local/bin/gen3-client && \
+    rm /tmp/gen3-client.zip
+
+# Create config directory
+RUN mkdir -p /root/.gen3
+
+# Default working directory
+WORKDIR /data
+
+ENTRYPOINT []
