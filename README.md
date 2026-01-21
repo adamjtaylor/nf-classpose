@@ -118,6 +118,9 @@ GrandQC models are pre-bundled in the container.
 | `singularity` | Run with Singularity |
 | `apptainer` | Run with Apptainer |
 | `gpu` | Enable GPU support (combine with container profile) |
+| `tower` | Resource settings for Seqera Platform (Tower) |
+| `tower_gpu` | Tower with GPU acceleration |
+| `tower_test` | Test profile for Tower using S3 samplesheet |
 | `test` | Run with test configuration |
 
 ### Examples
