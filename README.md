@@ -37,7 +37,7 @@ nextflow run main.nf \
 The pipeline uses a pre-built container with all dependencies and models:
 
 ```
-ghcr.io/sohmandal/nf-classpose:latest
+ghcr.io/adamjtaylor/nf-classpose:latest
 ```
 
 ## Samplesheet Format

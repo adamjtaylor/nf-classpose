@@ -1,6 +1,6 @@
 FROM python:3.13-slim
 
-LABEL org.opencontainers.image.source="https://github.com/sohmandal/nf-classpose"
+LABEL org.opencontainers.image.source="https://github.com/adamjtaylor/nf-classpose"
 LABEL org.opencontainers.image.description="Classpose WSI cell classification"
 LABEL org.opencontainers.image.licenses="MIT"
 
