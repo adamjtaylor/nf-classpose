@@ -31,6 +31,18 @@ if (!params.input) {
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    HELPER FUNCTIONS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+// Check if a file needs conversion (OME-TIFF formats not natively supported by OpenSlide)
+def needsConversion(path) {
+    def name = path.toString().toLowerCase()
+    return name.endsWith('.ome.tif') || name.endsWith('.ome.tiff')
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     PARSE SAMPLESHEET
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
@@ -66,11 +78,22 @@ workflow {
     // Parse samplesheet
     ch_samples = parseSamplesheet(params.input)
 
-    // Convert WSIs if needed (OME-TIFF to Generic Tiled TIFF)
-    ch_converted = VIPS_CONVERT(ch_samples)
+    // Branch based on format compatibility
+    ch_samples
+        .branch {
+            convert: needsConversion(it[1])
+            passthrough: true
+        }
+        .set { ch_branched }
+
+    // Convert OME-TIFF files to OpenSlide-compatible format
+    ch_converted = VIPS_CONVERT(ch_branched.convert)
+
+    // Combine converted files with passthrough files
+    ch_ready = ch_branched.passthrough.mix(ch_converted.slide)
 
     // Run classpose prediction
-    CLASSPOSE_PREDICT_WSI(ch_converted.converted)
+    CLASSPOSE_PREDICT_WSI(ch_ready)
 }
 
 /*
