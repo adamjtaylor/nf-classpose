@@ -5,6 +5,7 @@ Nextflow pipeline wrapper for [Classpose](https://github.com/sohmandal/classpose
 ## Features
 
 - Simple CSV samplesheet input (just slide paths)
+- Automatic OME-TIFF conversion to OpenSlide-compatible format
 - Pre-built Docker container with conic model included
 - Support for Docker, Singularity, and Apptainer
 - GPU acceleration support
@@ -32,13 +33,14 @@ nextflow run main.nf \
 - [Nextflow](https://www.nextflow.io/) (>=23.04.0)
 - [Docker](https://www.docker.com/) or [Singularity](https://sylabs.io/singularity/) or [Apptainer](https://apptainer.org/)
 
-### Container
+### Containers
 
-The pipeline uses a pre-built container with all dependencies and models:
+The pipeline uses pre-built containers:
 
-```
-ghcr.io/adamjtaylor/nf-classpose:latest
-```
+| Container | Purpose |
+|-----------|---------|
+| `ghcr.io/adamjtaylor/nf-classpose:latest` | Main classpose inference |
+| `ghcr.io/adamjtaylor/nf-classpose-vips:latest` | OME-TIFF format conversion |
 
 ## Samplesheet Format
 
@@ -56,6 +58,21 @@ slide_path
 | `slide_path` | Yes | Path to WSI file (.svs, .tiff, .ndpi, etc.) |
 
 Sample IDs are automatically derived from the slide filename (e.g., `slide1.svs` → `slide1`).
+
+## Format Conversion
+
+The pipeline automatically handles format compatibility with OpenSlide:
+
+| Format | Action |
+|--------|--------|
+| `.svs`, `.ndpi`, `.tif`, `.tiff` | Pass-through (OpenSlide compatible) |
+| `.ome.tif`, `.ome.tiff` | Converted to Generic Tiled TIFF via libvips |
+
+OME-TIFF files are converted using `vips tiffsave` with the following settings:
+- Tiled format (256x256 tiles)
+- Pyramid/multi-resolution
+- BigTIFF enabled (supports files >4GB)
+- Configurable compression (default: JPEG)
 
 ## Parameters
 
@@ -110,6 +127,12 @@ GrandQC models are pre-bundled in the container.
 |-----------|---------|-------------|
 | `--output_type` | `csv spatialdata` | Output formats: csv (density stats), spatialdata (Zarr) |
 
+### Format Conversion
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--vips_compression` | `jpeg` | Compression for converted TIFFs: jpeg, deflate, lzw, none |
+
 ## Profiles
 
 | Profile | Description |
@@ -155,13 +178,16 @@ The pipeline produces the following outputs for each sample:
 | `{sample_id}_cell_densities.csv` | Cell density statistics (if --output_type csv) |
 | `{sample_id}_spatialdata.zarr` | SpatialData object (if --output_type spatialdata) |
 
-## Building the Container Locally
+## Building the Containers Locally
 
 ```bash
-# Build Docker image
-docker build -t nf-classpose docker/
+# Build main classpose image
+docker build -t nf-classpose -f docker/Dockerfile docker/
 
-# Verify model is present
+# Build vips conversion image
+docker build -t nf-classpose-vips -f docker/Dockerfile.vips docker/
+
+# Verify model is present in main image
 docker run nf-classpose ls /root/.classpose_models
 ```
 
