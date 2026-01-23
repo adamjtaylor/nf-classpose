@@ -59,9 +59,9 @@ def parseSamplesheet(samplesheet) {
 
             def slide = file(row.slide_path, checkIfExists: true)
 
-            // Auto-derive sample_id from filename (without extension)
+            // Auto-derive sample_id from filename (without extensions)
             def meta = [
-                id: slide.baseName
+                id: slide.simpleName
             ]
 
             return [meta, slide]
