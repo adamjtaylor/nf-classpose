@@ -8,6 +8,8 @@ LABEL org.opencontainers.image.licenses="MIT"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libvips-tools \
     libvips42 \
+    libtiff-tools \
+    bc \
     procps \
     && rm -rf /var/lib/apt/lists/*
 
