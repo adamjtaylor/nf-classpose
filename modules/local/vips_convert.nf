@@ -6,7 +6,7 @@ process VIPS_CONVERT {
     tuple val(meta), path(image)
 
     output:
-    tuple val(meta), path("${meta.id}_converted.tif"), emit: slide
+    tuple val(meta), path("${meta.id}.tif"), emit: slide
 
     script:
     def compression = params.vips_compression ?: 'jpeg'
@@ -27,7 +27,7 @@ process VIPS_CONVERT {
         RES_ARGS=""
     fi
 
-    vips tiffsave "${image}" "${meta.id}_converted.tif" \\
+    vips tiffsave "${image}" "${meta.id}.tif" \\
         --compression=${compression} \\
         --Q=90 \\
         --tile \\
