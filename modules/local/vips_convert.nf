@@ -15,11 +15,11 @@ process VIPS_CONVERT {
     # OME stores PhysicalSizeX in micrometers, VIPS needs pixels/mm
     # Formula: pixels_per_mm = 1000 / physical_size_um
 
-    PHYSICAL_SIZE=\$(tiffcomment "${image}" | grep -oP 'PhysicalSizeX="\\K[0-9.]+' | head -1)
+    PHYSICAL_SIZE=\$(vipsheader -f image-description "${image}" 2>/dev/null | grep -oP 'PhysicalSizeX="\\K[0-9.]+' | head -1)
 
     if [ -n "\$PHYSICAL_SIZE" ]; then
         # Convert micrometers to pixels/mm: 1000 / mpp
-        PIXELS_PER_MM=\$(echo "scale=6; 1000 / \$PHYSICAL_SIZE" | bc)
+        PIXELS_PER_MM=\$(awk "BEGIN {printf \\"%.6f\\", 1000 / \$PHYSICAL_SIZE}")
         echo "Extracted PhysicalSizeX: \$PHYSICAL_SIZE um/pixel -> \$PIXELS_PER_MM pixels/mm"
         RES_ARGS="--xres=\$PIXELS_PER_MM --yres=\$PIXELS_PER_MM"
     else
