@@ -14,6 +14,9 @@ process GEN3_DOWNLOAD {
     // Extract GUID from DRS URI: drs://nci-crdc.datacommons.io/dg.4DFC/guid -> dg.4DFC/guid
     def guid = drs_uri.toString().replaceFirst(/^drs:\/\/[^\/]+\//, '')
     """
+    # Set HOME for gen3-client config (needed when running as non-root user)
+    export HOME=\$PWD
+
     # Configure gen3-client profile
     gen3-client configure \\
         --profile=${params.gen3_profile} \\

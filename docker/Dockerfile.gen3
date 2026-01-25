@@ -9,10 +9,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     unzip \
     ca-certificates \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install gen3-client
-RUN curl -L "https://github.com/uc-cdis/cdis-data-client/releases/download/2026.02/dataclient_linux_amd64.zip" \
+RUN curl -L "https://github.com/uc-cdis/cdis-data-client/releases/download/2026.02/dataclient_linux.zip" \
         -o /tmp/gen3-client.zip && \
     unzip /tmp/gen3-client.zip -d /usr/local/bin && \
     chmod +x /usr/local/bin/gen3-client && \

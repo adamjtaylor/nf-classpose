@@ -20,17 +20,6 @@ include { GEN3_DOWNLOAD } from './modules/local/gen3_download'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    VALIDATE INPUTS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-// Check required parameters
-if (!params.input) {
-    error "ERROR: Please provide an input samplesheet with --input"
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     HELPER FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
@@ -89,6 +78,11 @@ def parseSamplesheet(samplesheet) {
 */
 
 workflow {
+    // Validate inputs
+    if (!params.input) {
+        error "ERROR: Please provide an input samplesheet with --input"
+    }
+
     // Parse samplesheet
     ch_input = parseSamplesheet(params.input)
 
@@ -132,26 +126,10 @@ workflow {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-workflow.onComplete {
+workflow.onComplete = {
     log.info ""
     log.info "Pipeline completed at: ${workflow.complete}"
     log.info "Execution status: ${workflow.success ? 'OK' : 'failed'}"
     log.info "Results published to: ${params.outdir}"
     log.info ""
-=======
-
-    See initial-dev branch for active development
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-nextflow.enable.dsl = 2
-
-workflow {
-    log.info """
-    ========================================
-    nf-classpose - placeholder
-    ========================================
-    This is a placeholder workflow.
-    See the initial-dev branch for the full implementation.
-    """
 }
