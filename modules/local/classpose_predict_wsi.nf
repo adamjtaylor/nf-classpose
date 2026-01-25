@@ -1,10 +1,10 @@
 process CLASSPOSE_PREDICT_WSI {
-    tag "$meta.id"
+    tag "$meta.id-$model"
     label 'process_gpu'
-    publishDir "${params.outdir}/${meta.id}", mode: 'copy'
+    publishDir "${params.outdir}/${meta.id}/${model}", mode: 'copy'
 
     input:
-    tuple val(meta), path(slide)
+    tuple val(meta), path(slide), val(model)
 
     output:
     tuple val(meta), path("${meta.id}_cell_contours.geojson"), emit: contours
@@ -60,7 +60,7 @@ process CLASSPOSE_PREDICT_WSI {
     """
     classpose-predict-wsi \\
         --slide_path ${slide} \\
-        --model_config ${params.model_config} \\
+        --model_config ${model} \\
         --output_folder . \\
         --batch_size ${params.batch_size} \\
         --tile_size ${params.tile_size} \\

@@ -6,7 +6,7 @@ Nextflow pipeline wrapper for [Classpose](https://github.com/sohmandal/classpose
 
 - Simple CSV samplesheet input (just slide paths)
 - Automatic OME-TIFF conversion to OpenSlide-compatible format
-- Pre-built Docker container with conic model included
+- Pre-built Docker container with conic and consep models included
 - Support for Docker, Singularity, and Apptainer
 - GPU acceleration support
 - Automatic OME-TIFF conversion to OpenSlide-compatible format
@@ -135,7 +135,7 @@ OME-TIFF files (`.ome.tif`, `.ome.tiff`) are automatically detected and converte
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--model_config` | `conic` | Model: conic (only conic bundled in container) |
+| `--models` | `['conic']` | Comma-separated list of models to run (conic, consep bundled in container). Pipeline will run each model on all slides. |
 
 ### ROI
 
@@ -217,11 +217,17 @@ nextflow run main.nf \
     --gen3_credentials ~/.gen3/credentials.json \
     -profile docker,gpu
 
-# Singularity with custom model
+# Singularity with single model
 nextflow run main.nf \
     --input samples.csv \
-    --model_config consep \
+    --models consep \
     -profile singularity,gpu
+
+# Run multiple models (matrix - runs both models on all slides)
+nextflow run main.nf \
+    --input samples.csv \
+    --models conic,consep \
+    -profile docker,gpu
 
 # Test profile
 nextflow run main.nf -profile test,docker
@@ -229,7 +235,22 @@ nextflow run main.nf -profile test,docker
 
 ## Outputs
 
-The pipeline produces the following outputs for each sample:
+The pipeline produces the following outputs for each sample, organized by model:
+
+```
+results/
+└── {sample_id}/
+    ├── conic/
+    │   ├── {sample_id}_cell_contours.geojson
+    │   ├── {sample_id}_cell_centroids.geojson
+    │   ├── {sample_id}_tissue_contours.geojson
+    │   ├── {sample_id}_artefact_contours.geojson
+    │   ├── {sample_id}_cell_densities.csv
+    │   └── {sample_id}_spatialdata.zarr
+    └── consep/
+        ├── {sample_id}_cell_contours.geojson
+        └── ...
+```
 
 | File | Description |
 |------|-------------|

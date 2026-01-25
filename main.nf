@@ -135,8 +135,12 @@ workflow {
     // Combine converted files with passthrough files
     ch_ready = ch_by_format.passthrough.mix(ch_converted.slide)
 
+    // Create model matrix (Cartesian product of slides × models)
+    ch_models = Channel.fromList(params.models)
+    ch_matrix = ch_ready.combine(ch_models)
+
     // Run classpose prediction
-    CLASSPOSE_PREDICT_WSI(ch_ready)
+    CLASSPOSE_PREDICT_WSI(ch_matrix)
 }
 
 /*
