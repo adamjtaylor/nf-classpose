@@ -135,7 +135,7 @@ OME-TIFF files (`.ome.tif`, `.ome.tiff`) are automatically detected and converte
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--model_config` | `conic` | Model: conic (only conic bundled in container) |
+| `--models` | `conic` | Comma-separated list of models to run (e.g., conic,consep). Each model runs on all slides. Only conic bundled in container currently. |
 
 ### ROI
 
@@ -217,10 +217,10 @@ nextflow run main.nf \
     --gen3_credentials ~/.gen3/credentials.json \
     -profile docker,gpu
 
-# Singularity with custom model
+# Singularity with multiple models (matrix: runs both on all slides)
 nextflow run main.nf \
     --input samples.csv \
-    --model_config consep \
+    --models conic,consep \
     -profile singularity,gpu
 
 # Test profile
@@ -229,7 +229,22 @@ nextflow run main.nf -profile test,docker
 
 ## Outputs
 
-The pipeline produces the following outputs for each sample:
+The pipeline produces the following outputs for each sample, organized by model:
+
+```
+results/
+└── {sample_id}/
+    ├── conic/
+    │   ├── {sample_id}_cell_contours.geojson
+    │   ├── {sample_id}_cell_centroids.geojson
+    │   ├── {sample_id}_tissue_contours.geojson
+    │   ├── {sample_id}_artefact_contours.geojson
+    │   ├── {sample_id}_cell_densities.csv
+    │   └── {sample_id}_spatialdata.zarr
+    └── consep/
+        ├── {sample_id}_cell_contours.geojson
+        ├── ...
+```
 
 | File | Description |
 |------|-------------|
