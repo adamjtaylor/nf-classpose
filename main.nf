@@ -15,6 +15,7 @@ nextflow.enable.dsl = 2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
+include { VIPS_CONVERT } from './modules/local/vips_convert'
 include { CLASSPOSE_PREDICT_WSI } from './modules/local/classpose_predict_wsi'
 include { GEN3_DOWNLOAD } from './modules/local/gen3_download'
 
@@ -23,6 +24,12 @@ include { GEN3_DOWNLOAD } from './modules/local/gen3_download'
     HELPER FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
+// Check if a file needs conversion (OME-TIFF formats not natively supported by OpenSlide)
+def needsConversion(path) {
+    def name = path.toString().toLowerCase()
+    return name.endsWith('.ome.tif') || name.endsWith('.ome.tiff')
+}
 
 // Check if a path is a DRS URI
 def isDrsUri(path) {
@@ -64,7 +71,7 @@ def parseSamplesheet(samplesheet) {
             } else {
                 def slide = file(slide_path, checkIfExists: true)
                 def meta = [
-                    id: slide.baseName
+                    id: slide.simpleName
                 ]
                 return [meta, slide]
             }
@@ -86,16 +93,16 @@ workflow {
     // Parse samplesheet
     ch_input = parseSamplesheet(params.input)
 
-    // Branch based on URI type
+    // Branch based on URI type (DRS vs direct file path)
     ch_input
         .branch {
             drs: isDrsUri(it[1])
             direct: true
         }
-        .set { ch_branched }
+        .set { ch_by_source }
 
     // Validate: fail if DRS URIs present but no credentials
-    ch_branched.drs
+    ch_by_source.drs
         .first()
         .subscribe {
             if (!params.gen3_credentials) {
@@ -106,18 +113,32 @@ workflow {
     // Download DRS files (only run if credentials provided)
     if (params.gen3_credentials) {
         ch_downloaded = GEN3_DOWNLOAD(
-            ch_branched.drs,
+            ch_by_source.drs,
             file(params.gen3_credentials)
         )
         // Combine direct paths with downloaded files
-        ch_samples = ch_branched.direct.mix(ch_downloaded.slide)
+        ch_samples = ch_by_source.direct.mix(ch_downloaded.slide)
     } else {
         // No credentials, only use direct paths
-        ch_samples = ch_branched.direct
+        ch_samples = ch_by_source.direct
     }
 
+    // Branch based on format compatibility (OME-TIFF vs native OpenSlide formats)
+    ch_samples
+        .branch {
+            convert: needsConversion(it[1])
+            passthrough: true
+        }
+        .set { ch_by_format }
+
+    // Convert OME-TIFF files to OpenSlide-compatible format
+    ch_converted = VIPS_CONVERT(ch_by_format.convert)
+
+    // Combine converted files with passthrough files
+    ch_ready = ch_by_format.passthrough.mix(ch_converted.slide)
+
     // Run classpose prediction
-    CLASSPOSE_PREDICT_WSI(ch_samples)
+    CLASSPOSE_PREDICT_WSI(ch_ready)
 }
 
 /*
@@ -126,7 +147,7 @@ workflow {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-workflow.onComplete = {
+workflow.onComplete {
     log.info ""
     log.info "Pipeline completed at: ${workflow.complete}"
     log.info "Execution status: ${workflow.success ? 'OK' : 'failed'}"
