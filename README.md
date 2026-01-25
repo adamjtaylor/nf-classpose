@@ -5,6 +5,7 @@ Nextflow pipeline wrapper for [Classpose](https://github.com/sohmandal/classpose
 ## Features
 
 - Simple CSV samplesheet input (just slide paths)
+- Automatic OME-TIFF conversion to OpenSlide-compatible format
 - Pre-built Docker container with conic model included
 - Support for Docker, Singularity, and Apptainer
 - GPU acceleration support
