@@ -9,6 +9,45 @@ Nextflow pipeline wrapper for [Classpose](https://github.com/sohmandal/classpose
 - Pre-built Docker container with conic model included
 - Support for Docker, Singularity, and Apptainer
 - GPU acceleration support
+- Automatic OME-TIFF conversion to OpenSlide-compatible format
+- DRS URI support for downloading files from Gen3/NCI CRDC
+
+## Pipeline Overview
+
+```mermaid
+flowchart TD
+    subgraph Input
+        A[Samplesheet CSV]
+    end
+
+    subgraph "Source Resolution"
+        A --> B{DRS URI?}
+        B -->|Yes| C[GEN3_DOWNLOAD]
+        B -->|No| D[Local File]
+        C --> E[Downloaded File]
+    end
+
+    subgraph "Format Conversion"
+        D --> F{OME-TIFF?}
+        E --> F
+        F -->|Yes| G[VIPS_CONVERT]
+        F -->|No| H[Passthrough]
+        G --> I[Converted TIFF]
+    end
+
+    subgraph "Inference"
+        H --> J[CLASSPOSE_PREDICT_WSI]
+        I --> J
+    end
+
+    subgraph Output
+        J --> K[Cell Contours GeoJSON]
+        J --> L[Cell Centroids GeoJSON]
+        J --> M[Tissue Contours GeoJSON]
+        J --> N[Cell Densities CSV]
+        J --> O[SpatialData Zarr]
+    end
+```
 
 ## Quick Start
 
@@ -35,12 +74,13 @@ nextflow run main.nf \
 
 ### Containers
 
-The pipeline uses pre-built containers:
+The pipeline uses multiple containers:
 
-| Container | Purpose |
-|-----------|---------|
-| `ghcr.io/adamjtaylor/nf-classpose:latest` | Main classpose inference |
-| `ghcr.io/adamjtaylor/nf-classpose-vips:latest` | OME-TIFF format conversion |
+| Container | Description |
+|-----------|-------------|
+| `ghcr.io/adamjtaylor/nf-classpose:latest` | Main classpose inference container |
+| `ghcr.io/adamjtaylor/nf-classpose-vips:main` | VIPS for OME-TIFF conversion |
+| `ghcr.io/adamjtaylor/nf-classpose-gen3:latest` | Gen3 client for DRS downloads |
 
 ## Samplesheet Format
 
@@ -49,30 +89,38 @@ Create a CSV file with slide paths:
 ```csv
 slide_path
 /data/slide1.svs
-/data/slide2.tiff
+/data/slide2.ome.tiff
 /data/slide3.ndpi
 ```
 
 | Column | Required | Description |
 |--------|----------|-------------|
-| `slide_path` | Yes | Path to WSI file (.svs, .tiff, .ndpi, etc.) |
+| `slide_path` | Yes | Path to WSI file (.svs, .tiff, .ndpi, etc.) or DRS URI |
 
 Sample IDs are automatically derived from the slide filename (e.g., `slide1.svs` → `slide1`).
 
-## Format Conversion
+### DRS URI Support
 
-The pipeline automatically handles format compatibility with OpenSlide:
+The pipeline supports DRS (Data Repository Service) URIs for downloading files from Gen3-based repositories like NCI CRDC:
 
-| Format | Action |
-|--------|--------|
-| `.svs`, `.ndpi`, `.tif`, `.tiff` | Pass-through (OpenSlide compatible) |
-| `.ome.tif`, `.ome.tiff` | Converted to Generic Tiled TIFF via libvips |
+```csv
+slide_path
+drs://nci-crdc.datacommons.io/dg.4DFC/624693b0-7e68-11ee-a75b-033941d3e6da
+/data/local_slide.svs
+```
 
-OME-TIFF files are converted using `vips tiffsave` with the following settings:
-- Tiled format (256x256 tiles)
-- Pyramid/multi-resolution
-- BigTIFF enabled (supports files >4GB)
-- Configurable compression (default: JPEG)
+To use DRS URIs, you must provide Gen3 credentials:
+
+```bash
+nextflow run main.nf \
+    --input samplesheet.csv \
+    --gen3_credentials ~/.gen3/credentials.json \
+    -profile docker
+```
+
+### OME-TIFF Support
+
+OME-TIFF files (`.ome.tif`, `.ome.tiff`) are automatically detected and converted to OpenSlide-compatible pyramidal TIFFs using VIPS. The conversion preserves the physical pixel size (mpp) from the OME-XML metadata.
 
 ## Parameters
 
@@ -127,11 +175,19 @@ GrandQC models are pre-bundled in the container.
 |-----------|---------|-------------|
 | `--output_type` | `csv spatialdata` | Output formats: csv (density stats), spatialdata (Zarr) |
 
-### Format Conversion
+### VIPS Conversion Settings
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--vips_compression` | `jpeg` | Compression for converted TIFFs: jpeg, deflate, lzw, none |
+| `--vips_compression` | `jpeg` | TIFF compression: jpeg, deflate, lzw, none |
+
+### Gen3/DRS Settings
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--gen3_credentials` | null | Path to Gen3 credentials JSON file |
+| `--gen3_profile` | `htan` | Gen3 profile name |
+| `--gen3_api_endpoint` | `https://nci-crdc.datacommons.io` | Gen3 API endpoint |
 
 ## Profiles
 
@@ -154,6 +210,12 @@ nextflow run main.nf --input samples.csv -profile docker
 
 # GPU-accelerated run
 nextflow run main.nf --input samples.csv -profile docker,gpu
+
+# Run with DRS URIs from NCI CRDC
+nextflow run main.nf \
+    --input drs_samples.csv \
+    --gen3_credentials ~/.gen3/credentials.json \
+    -profile docker,gpu
 
 # Singularity with custom model
 nextflow run main.nf \
@@ -181,14 +243,14 @@ The pipeline produces the following outputs for each sample:
 ## Building the Containers Locally
 
 ```bash
-# Build main classpose image
-docker build -t nf-classpose -f docker/Dockerfile docker/
+# Build main classpose container
+docker build -t ghcr.io/adamjtaylor/nf-classpose:latest docker/
 
-# Build vips conversion image
-docker build -t nf-classpose-vips -f docker/Dockerfile.vips docker/
+# Build VIPS conversion container
+docker build -t ghcr.io/adamjtaylor/nf-classpose-vips:main -f docker/Dockerfile.vips docker/
 
-# Verify model is present in main image
-docker run nf-classpose ls /root/.classpose_models
+# Build Gen3 client container (requires amd64 for gen3-client binary)
+docker build --platform linux/amd64 -t ghcr.io/adamjtaylor/nf-classpose-gen3:latest -f docker/Dockerfile.gen3 docker/
 ```
 
 ## License
