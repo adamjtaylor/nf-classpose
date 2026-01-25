@@ -102,6 +102,13 @@ workflow {
         error "ERROR: Please provide an input samplesheet with --input"
     }
 
+    // Check for DRS URIs synchronously before workflow execution
+    def samplesheet_file = file(params.input, checkIfExists: true)
+    def has_drs_uris = samplesheet_file.text.contains('drs://')
+    if (has_drs_uris && !params.gen3_credentials) {
+        error "ERROR: DRS URIs found in samplesheet but --gen3_credentials not provided"
+    }
+
     // Parse samplesheet
     ch_input = parseSamplesheet(params.input)
 
@@ -112,15 +119,6 @@ workflow {
             direct: true
         }
         .set { ch_by_source }
-
-    // Validate: fail if DRS URIs present but no credentials
-    ch_by_source.drs
-        .first()
-        .subscribe {
-            if (!params.gen3_credentials) {
-                error "ERROR: DRS URIs found in samplesheet but --gen3_credentials not provided"
-            }
-        }
 
     // Download DRS files (only run if credentials provided)
     if (params.gen3_credentials) {
