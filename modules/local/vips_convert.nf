@@ -1,6 +1,7 @@
 process VIPS_CONVERT {
     tag "$meta.id"
     label 'process_medium'
+    publishDir "${params.outdir}/${meta.id}/vips_converted", mode: 'copy', enabled: params.vips_save
 
     input:
     tuple val(meta), path(image)
