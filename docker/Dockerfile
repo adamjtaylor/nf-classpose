@@ -26,8 +26,8 @@ RUN git clone https://github.com/sohmandal/classpose.git
 WORKDIR /opt/classpose
 RUN uv sync
 
-# Pre-download classpose models
-# See: https://github.com/adamjtaylor/nf-classpose/issues/3 for more models
+# Pre-download classpose models (conic and consep bundled)
+# See: https://github.com/adamjtaylor/nf-classpose/issues/3 for adding more models
 ENV CLASSPOSE_MODEL_DIR=/root/.classpose_models
 RUN mkdir -p $CLASSPOSE_MODEL_DIR && \
     uv run python -c "from huggingface_hub import hf_hub_download; \

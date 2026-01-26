@@ -1,5 +1,5 @@
 process CLASSPOSE_PREDICT_WSI {
-    tag "$meta.id - $model"
+    tag "$meta.id-$model"
     label 'process_gpu'
     publishDir "${params.outdir}/${meta.id}/${model}", mode: 'copy'
 
