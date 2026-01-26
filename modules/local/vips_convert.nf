@@ -37,4 +37,9 @@ process VIPS_CONVERT {
         --bigtiff \\
         \$RES_ARGS
     """
+
+    stub:
+    """
+    touch "${meta.id}.tif"
+    """
 }

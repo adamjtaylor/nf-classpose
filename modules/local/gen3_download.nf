@@ -51,4 +51,14 @@ process GEN3_DOWNLOAD {
         gen3-client: \$(gen3-client --version 2>&1 | head -1 || echo "unknown")
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch "${meta.id}.ome.tiff"
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        gen3-client: stub
+    END_VERSIONS
+    """
 }

@@ -72,4 +72,19 @@ process CLASSPOSE_PREDICT_WSI {
         classpose: \$(classpose-predict-wsi --help 2>&1 | head -1 || echo "unknown")
     END_VERSIONS
     """
+
+    stub:
+    """
+    touch "${meta.id}_cell_contours.geojson"
+    touch "${meta.id}_cell_centroids.geojson"
+    touch "${meta.id}_tissue_contours.geojson"
+    touch "${meta.id}_artefact_contours.geojson"
+    touch "${meta.id}_cell_densities.csv"
+    mkdir -p "${meta.id}_spatialdata.zarr"
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        classpose: stub
+    END_VERSIONS
+    """
 }
