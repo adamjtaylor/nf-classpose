@@ -140,8 +140,8 @@ workflow {
     ch_ready = ch_by_format.passthrough.mix(ch_converted.slide)
 
     // Create model matrix if multiple models specified
-    // Convert models parameter to list if it's a single string
-    def model_list = params.models instanceof List ? params.models : [params.models]
+    // Handle models as: list ['conic', 'consep'], comma-separated string 'conic,consep', or single 'conic'
+    def model_list = params.models instanceof List ? params.models : params.models.toString().split(',').collect { it.trim() }
     ch_models = Channel.fromList(model_list)
 
     // Create cartesian product of slides and models

@@ -1,0 +1,4 @@
+id,slide_path
+test_sample,test/stub_slide_svs.svs
+test_ome,test/stub_slide_one.ome.tiff
+test_drs,drs://nci-crdc.datacommons.io/dg.4DFC/00000000-0000-0000-0000-000000000000
