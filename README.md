@@ -135,7 +135,9 @@ OME-TIFF files (`.ome.tif`, `.ome.tiff`) are automatically detected and converte
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--models` | `['conic']` | Comma-separated list of models to run (conic, consep bundled in container). Pipeline will run each model on all slides. |
+| `--models` | `['conic']` | Model(s) to run. Single model: `--models conic` or multiple: `--models conic,consep` (runs each model on all slides) |
+
+**Available bundled models:** conic, consep
 
 ### ROI
 
@@ -217,13 +219,13 @@ nextflow run main.nf \
     --gen3_credentials ~/.gen3/credentials.json \
     -profile docker,gpu
 
-# Singularity with single model
+# Run with consep model
 nextflow run main.nf \
     --input samples.csv \
     --models consep \
     -profile singularity,gpu
 
-# Run multiple models (matrix - runs both models on all slides)
+# Run multiple models (matrix)
 nextflow run main.nf \
     --input samples.csv \
     --models conic,consep \
@@ -235,31 +237,20 @@ nextflow run main.nf -profile test,docker
 
 ## Outputs
 
-The pipeline produces the following outputs for each sample, organized by model:
+The pipeline produces the following outputs for each sample and model combination:
 
-```
-results/
-└── {sample_id}/
-    ├── conic/
-    │   ├── {sample_id}_cell_contours.geojson
-    │   ├── {sample_id}_cell_centroids.geojson
-    │   ├── {sample_id}_tissue_contours.geojson
-    │   ├── {sample_id}_artefact_contours.geojson
-    │   ├── {sample_id}_cell_densities.csv
-    │   └── {sample_id}_spatialdata.zarr
-    └── consep/
-        ├── {sample_id}_cell_contours.geojson
-        └── ...
-```
+Results are organized as: `{outdir}/{sample_id}/{model}/`
 
 | File | Description |
 |------|-------------|
-| `{sample_id}_cell_contours.geojson` | Cell contour polygons |
-| `{sample_id}_cell_centroids.geojson` | Cell centroid points |
-| `{sample_id}_tissue_contours.geojson` | Tissue contours (if tissue detection enabled) |
-| `{sample_id}_artefact_contours.geojson` | Artefact contours (if artefact detection enabled) |
-| `{sample_id}_cell_densities.csv` | Cell density statistics (if --output_type csv) |
-| `{sample_id}_spatialdata.zarr` | SpatialData object (if --output_type spatialdata) |
+| `{sample_id}_{model}_cell_contours.geojson` | Cell contour polygons |
+| `{sample_id}_{model}_cell_centroids.geojson` | Cell centroid points |
+| `{sample_id}_{model}_tissue_contours.geojson` | Tissue contours (if tissue detection enabled) |
+| `{sample_id}_{model}_artefact_contours.geojson` | Artefact contours (if artefact detection enabled) |
+| `{sample_id}_{model}_cell_densities.csv` | Cell density statistics (if --output_type csv) |
+| `{sample_id}_{model}_spatialdata.zarr` | SpatialData object (if --output_type spatialdata) |
+
+When running multiple models, each model's results are stored in separate subdirectories.
 
 ## Building the Containers Locally
 

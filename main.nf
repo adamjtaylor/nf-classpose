@@ -135,12 +135,23 @@ workflow {
     // Combine converted files with passthrough files
     ch_ready = ch_by_format.passthrough.mix(ch_converted.slide)
 
-    // Create model matrix (Cartesian product of slides × models)
-    ch_models = Channel.fromList(params.models)
-    ch_matrix = ch_ready.combine(ch_models)
+    // Create model matrix if multiple models specified
+    // Convert models parameter to list if it's a single string
+    def model_list = params.models instanceof List ? params.models : [params.models]
+    ch_models = Channel.fromList(model_list)
+
+    // Create cartesian product of slides and models
+    ch_ready
+        .combine(ch_models)
+        .map { meta, slide, model ->
+            // Add model to metadata
+            def new_meta = meta + [model: model]
+            [new_meta, slide, model]
+        }
+        .set { ch_with_models }
 
     // Run classpose prediction
-    CLASSPOSE_PREDICT_WSI(ch_matrix)
+    CLASSPOSE_PREDICT_WSI(ch_with_models)
 }
 
 /*
