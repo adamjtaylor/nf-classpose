@@ -253,12 +253,12 @@ Results are organized as: `{outdir}/{sample_id}/{model}/`
 
 | File | Description |
 |------|-------------|
-| `{sample_id}_cell_contours.geojson` | Cell contour polygons |
-| `{sample_id}_cell_centroids.geojson` | Cell centroid points |
-| `{sample_id}_tissue_contours.geojson` | Tissue contours (if tissue detection enabled) |
-| `{sample_id}_artefact_contours.geojson` | Artefact contours (if artefact detection enabled) |
-| `{sample_id}_cell_densities.csv` | Cell density statistics (if --output_type csv) |
-| `{sample_id}_spatialdata.zarr` | SpatialData object (if --output_type spatialdata) |
+| `{sample_id}_{model}_cell_contours.geojson` | Cell contour polygons |
+| `{sample_id}_{model}_cell_centroids.geojson` | Cell centroid points |
+| `{sample_id}_{model}_tissue_contours.geojson` | Tissue contours (if tissue detection enabled) |
+| `{sample_id}_{model}_artefact_contours.geojson` | Artefact contours (if artefact detection enabled) |
+| `{sample_id}_{model}_cell_densities.csv` | Cell density statistics (if --output_type csv) |
+| `{sample_id}_{model}_spatialdata.zarr` | SpatialData object (if --output_type spatialdata) |
 
 When running multiple models, each model's results are stored in separate subdirectories.
 
