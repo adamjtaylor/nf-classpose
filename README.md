@@ -93,11 +93,21 @@ slide_path
 /data/slide3.ndpi
 ```
 
-| Column | Required | Description |
-|--------|----------|-------------|
-| `slide_path` | Yes | Path to WSI file (.svs, .tiff, .ndpi, etc.) or DRS URI |
+Or with optional custom sample IDs:
 
-Sample IDs are automatically derived from the slide filename (e.g., `slide1.svs` → `slide1`).
+```csv
+id,slide_path
+patient_001,/data/slide1.svs
+patient_002,/data/slide2.ome.tiff
+patient_003,/data/slide3.ndpi
+```
+
+| Column       | Required | Description                                              |
+|--------------|----------|----------------------------------------------------------|
+| `slide_path` | Yes      | Path to WSI file (.svs, .tiff, .ndpi, etc.) or DRS URI   |
+| `id`         | No       | Custom sample ID (if not provided, derived from filename)|
+
+Sample IDs are automatically derived from the slide filename (e.g., `slide1.svs` → `slide1`) unless an `id` column is provided.
 
 ### DRS URI Support
 
@@ -243,12 +253,12 @@ Results are organized as: `{outdir}/{sample_id}/{model}/`
 
 | File | Description |
 |------|-------------|
-| `{sample_id}_{model}_cell_contours.geojson` | Cell contour polygons |
-| `{sample_id}_{model}_cell_centroids.geojson` | Cell centroid points |
-| `{sample_id}_{model}_tissue_contours.geojson` | Tissue contours (if tissue detection enabled) |
-| `{sample_id}_{model}_artefact_contours.geojson` | Artefact contours (if artefact detection enabled) |
-| `{sample_id}_{model}_cell_densities.csv` | Cell density statistics (if --output_type csv) |
-| `{sample_id}_{model}_spatialdata.zarr` | SpatialData object (if --output_type spatialdata) |
+| `{sample_id}_cell_contours.geojson` | Cell contour polygons |
+| `{sample_id}_cell_centroids.geojson` | Cell centroid points |
+| `{sample_id}_tissue_contours.geojson` | Tissue contours (if tissue detection enabled) |
+| `{sample_id}_artefact_contours.geojson` | Artefact contours (if artefact detection enabled) |
+| `{sample_id}_cell_densities.csv` | Cell density statistics (if --output_type csv) |
+| `{sample_id}_spatialdata.zarr` | SpatialData object (if --output_type spatialdata) |
 
 When running multiple models, each model's results are stored in separate subdirectories.
 

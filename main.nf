@@ -64,14 +64,18 @@ def parseSamplesheet(samplesheet) {
 
             // Handle DRS URIs differently - don't check if file exists
             if (isDrsUri(slide_path)) {
+                // Use provided id if available, otherwise derive from DRS URI
+                def sample_id = row.id ?: drsUriToId(slide_path)
                 def meta = [
-                    id: drsUriToId(slide_path)
+                    id: sample_id
                 ]
                 return [meta, slide_path]
             } else {
                 def slide = file(slide_path, checkIfExists: true)
+                // Use provided id if available, otherwise derive from filename
+                def sample_id = row.id ?: slide.simpleName
                 def meta = [
-                    id: slide.simpleName
+                    id: sample_id
                 ]
                 return [meta, slide]
             }
@@ -146,7 +150,7 @@ workflow {
         .map { meta, slide, model ->
             // Add model to metadata
             def new_meta = meta + [model: model]
-            [new_meta, slide, model]
+            [new_meta, slide]
         }
         .set { ch_with_models }
 
