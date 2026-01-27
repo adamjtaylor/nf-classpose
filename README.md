@@ -6,7 +6,7 @@ Nextflow pipeline wrapper for [Classpose](https://github.com/sohmandal/classpose
 
 - Simple CSV samplesheet input (just slide paths)
 - Automatic OME-TIFF conversion to OpenSlide-compatible format
-- Pre-built Docker container with conic model included
+- Pre-built Docker container with conic and consep models included
 - Support for Docker, Singularity, and Apptainer
 - GPU acceleration support
 - Automatic OME-TIFF conversion to OpenSlide-compatible format
@@ -93,11 +93,21 @@ slide_path
 /data/slide3.ndpi
 ```
 
-| Column | Required | Description |
-|--------|----------|-------------|
-| `slide_path` | Yes | Path to WSI file (.svs, .tiff, .ndpi, etc.) or DRS URI |
+Or with optional custom sample IDs:
 
-Sample IDs are automatically derived from the slide filename (e.g., `slide1.svs` → `slide1`).
+```csv
+id,slide_path
+patient_001,/data/slide1.svs
+patient_002,/data/slide2.ome.tiff
+patient_003,/data/slide3.ndpi
+```
+
+| Column       | Required | Description                                              |
+|--------------|----------|----------------------------------------------------------|
+| `slide_path` | Yes      | Path to WSI file (.svs, .tiff, .ndpi, etc.) or DRS URI   |
+| `id`         | No       | Custom sample ID (if not provided, derived from filename)|
+
+Sample IDs are automatically derived from the slide filename (e.g., `slide1.svs` → `slide1`) unless an `id` column is provided.
 
 ### DRS URI Support
 
@@ -135,7 +145,9 @@ OME-TIFF files (`.ome.tif`, `.ome.tiff`) are automatically detected and converte
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--model_config` | `conic` | Model: conic (only conic bundled in container) |
+| `--models` | `['conic']` | Model(s) to run. Single model: `--models conic` or multiple: `--models conic,consep` (runs each model on all slides) |
+
+**Available bundled models:** conic, consep
 
 ### ROI
 
@@ -217,11 +229,17 @@ nextflow run main.nf \
     --gen3_credentials ~/.gen3/credentials.json \
     -profile docker,gpu
 
-# Singularity with custom model
+# Run with consep model
 nextflow run main.nf \
     --input samples.csv \
-    --model_config consep \
+    --models consep \
     -profile singularity,gpu
+
+# Run multiple models (matrix)
+nextflow run main.nf \
+    --input samples.csv \
+    --models conic,consep \
+    -profile docker,gpu
 
 # Test profile
 nextflow run main.nf -profile test,docker
@@ -229,16 +247,20 @@ nextflow run main.nf -profile test,docker
 
 ## Outputs
 
-The pipeline produces the following outputs for each sample:
+The pipeline produces the following outputs for each sample and model combination:
+
+Results are organized as: `{outdir}/{sample_id}/{model}/`
 
 | File | Description |
 |------|-------------|
-| `{sample_id}_cell_contours.geojson` | Cell contour polygons |
-| `{sample_id}_cell_centroids.geojson` | Cell centroid points |
-| `{sample_id}_tissue_contours.geojson` | Tissue contours (if tissue detection enabled) |
-| `{sample_id}_artefact_contours.geojson` | Artefact contours (if artefact detection enabled) |
-| `{sample_id}_cell_densities.csv` | Cell density statistics (if --output_type csv) |
-| `{sample_id}_spatialdata.zarr` | SpatialData object (if --output_type spatialdata) |
+| `{sample_id}_{model}_cell_contours.geojson` | Cell contour polygons |
+| `{sample_id}_{model}_cell_centroids.geojson` | Cell centroid points |
+| `{sample_id}_{model}_tissue_contours.geojson` | Tissue contours (if tissue detection enabled) |
+| `{sample_id}_{model}_artefact_contours.geojson` | Artefact contours (if artefact detection enabled) |
+| `{sample_id}_{model}_cell_densities.csv` | Cell density statistics (if --output_type csv) |
+| `{sample_id}_{model}_spatialdata.zarr` | SpatialData object (if --output_type spatialdata) |
+
+When running multiple models, each model's results are stored in separate subdirectories.
 
 ## Building the Containers Locally
 

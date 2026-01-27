@@ -64,14 +64,18 @@ def parseSamplesheet(samplesheet) {
 
             // Handle DRS URIs differently - don't check if file exists
             if (isDrsUri(slide_path)) {
+                // Use provided id if available, otherwise derive from DRS URI
+                def sample_id = row.id ?: drsUriToId(slide_path)
                 def meta = [
-                    id: drsUriToId(slide_path)
+                    id: sample_id
                 ]
                 return [meta, slide_path]
             } else {
                 def slide = file(slide_path, checkIfExists: true)
+                // Use provided id if available, otherwise derive from filename
+                def sample_id = row.id ?: slide.simpleName
                 def meta = [
-                    id: slide.simpleName
+                    id: sample_id
                 ]
                 return [meta, slide]
             }
@@ -135,8 +139,23 @@ workflow {
     // Combine converted files with passthrough files
     ch_ready = ch_by_format.passthrough.mix(ch_converted.slide)
 
+    // Create model matrix if multiple models specified
+    // Handle models as: list ['conic', 'consep'], comma-separated string 'conic,consep', or single 'conic'
+    def model_list = params.models instanceof List ? params.models : params.models.toString().split(',').collect { it.trim() }
+    ch_models = Channel.fromList(model_list)
+
+    // Create cartesian product of slides and models
+    ch_ready
+        .combine(ch_models)
+        .map { meta, slide, model ->
+            // Add model to metadata
+            def new_meta = meta + [model: model]
+            [new_meta, slide]
+        }
+        .set { ch_with_models }
+
     // Run classpose prediction
-    CLASSPOSE_PREDICT_WSI(ch_ready)
+    CLASSPOSE_PREDICT_WSI(ch_with_models)
 }
 
 /*

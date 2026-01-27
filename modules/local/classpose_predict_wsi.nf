@@ -1,18 +1,18 @@
 process CLASSPOSE_PREDICT_WSI {
-    tag "$meta.id"
+    tag "$meta.id-$meta.model"
     label 'process_gpu'
-    publishDir "${params.outdir}/${meta.id}", mode: 'copy'
+    publishDir "${params.outdir}/${meta.id}/${meta.model}", mode: 'copy'
 
     input:
     tuple val(meta), path(slide)
 
     output:
-    tuple val(meta), path("${meta.id}_cell_contours.geojson"), emit: contours
-    tuple val(meta), path("${meta.id}_cell_centroids.geojson"), emit: centroids
-    tuple val(meta), path("${meta.id}_tissue_contours.geojson"), emit: tissue, optional: true
-    tuple val(meta), path("${meta.id}_artefact_contours.geojson"), emit: artefact, optional: true
-    tuple val(meta), path("${meta.id}_cell_densities.csv"), emit: csv, optional: true
-    tuple val(meta), path("${meta.id}_spatialdata.zarr"), emit: spatialdata, optional: true
+    tuple val(meta), path("${meta.id}_${meta.model}_cell_contours.geojson"), emit: contours
+    tuple val(meta), path("${meta.id}_${meta.model}_cell_centroids.geojson"), emit: centroids
+    tuple val(meta), path("${meta.id}_${meta.model}_tissue_contours.geojson"), emit: tissue, optional: true
+    tuple val(meta), path("${meta.id}_${meta.model}_artefact_contours.geojson"), emit: artefact, optional: true
+    tuple val(meta), path("${meta.id}_${meta.model}_cell_densities.csv"), emit: csv, optional: true
+    tuple val(meta), path("${meta.id}_${meta.model}_spatialdata.zarr"), emit: spatialdata, optional: true
     path "versions.yml", emit: versions
 
     script:
@@ -60,16 +60,44 @@ process CLASSPOSE_PREDICT_WSI {
     """
     classpose-predict-wsi \\
         --slide_path ${slide} \\
-        --model_config ${params.model_config} \\
+        --model_config ${meta.model} \\
         --output_folder . \\
         --batch_size ${params.batch_size} \\
         --tile_size ${params.tile_size} \\
         --overlap ${params.overlap} \\
         ${args_str}
 
+    # Rename output files to include model name
+    for file in ${meta.id}_*.geojson ${meta.id}_*.csv; do
+        if [ -f "\$file" ]; then
+            newname=\$(echo "\$file" | sed "s/${meta.id}_/${meta.id}_${meta.model}_/")
+            mv "\$file" "\$newname"
+        fi
+    done
+
+    # Rename spatialdata directory if it exists
+    if [ -d "${meta.id}_spatialdata.zarr" ]; then
+        mv "${meta.id}_spatialdata.zarr" "${meta.id}_${meta.model}_spatialdata.zarr"
+    fi
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         classpose: \$(classpose-predict-wsi --help 2>&1 | head -1 || echo "unknown")
+    END_VERSIONS
+    """
+
+    stub:
+    """
+    touch "${meta.id}_${meta.model}_cell_contours.geojson"
+    touch "${meta.id}_${meta.model}_cell_centroids.geojson"
+    touch "${meta.id}_${meta.model}_tissue_contours.geojson"
+    touch "${meta.id}_${meta.model}_artefact_contours.geojson"
+    touch "${meta.id}_${meta.model}_cell_densities.csv"
+    mkdir -p "${meta.id}_${meta.model}_spatialdata.zarr"
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        classpose: stub
     END_VERSIONS
     """
 }
